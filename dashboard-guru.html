@@ -1,86 +1,570 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" data-bs-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Guru - EduGame Track</title>
+    <meta name="description" content="Panel guru EduGame Track — monitoring kelas, rekap nilai, dan grafik progres siswa.">
+    <meta name="theme-color" content="#4f46e5">
+    <title>Panel Guru — EduGame Track</title>
+
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%234f46e5'/%3E%3Ctext x='32' y='45' font-size='34' font-family='Arial,Helvetica,sans-serif' font-weight='bold' fill='%23ffffff' text-anchor='middle'%3EE%3C/text%3E%3C/svg%3E">
+
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>body { font-family: 'Inter', sans-serif; background-color: #f8fafc; }</style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+
+    <script>
+        (function () {
+            try {
+                var t = localStorage.getItem('eg-theme');
+                document.documentElement.setAttribute('data-bs-theme', t || 'light');
+            } catch (e) { }
+        })();
+    </script>
+
+    <style>
+        .eg-alert-row {
+            display: flex; align-items: center; gap: .85rem;
+            padding: .85rem 1rem;
+            border-radius: var(--eg-radius);
+            border: 1px solid var(--eg-border);
+            background: var(--eg-surface);
+            transition: all var(--eg-dur) var(--eg-ease);
+        }
+        .eg-alert-row:hover { box-shadow: var(--eg-shadow-sm); transform: translateX(4px); }
+        .eg-alert-icon {
+            width: 38px; height: 38px; flex: 0 0 38px;
+            border-radius: .65rem;
+            display: grid; place-items: center;
+            font-size: 1.05rem;
+        }
+        .eg-table-mini { font-size: .88rem; }
+        .eg-legend {
+            display: inline-flex; align-items: center; gap: .4rem;
+            font-size: .78rem; font-weight: 600; color: var(--eg-muted);
+        }
+        .eg-legend i { width: 10px; height: 10px; border-radius: 3px; display: block; }
+    </style>
 </head>
+
 <body>
 
-    <!-- Navbar Guru -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="#">EduGame Track | Panel Guru & Admin 👩‍🏫</a>
+<div class="eg-shell">
+
+    <!-- ============ SIDEBAR ============ -->
+    <aside class="eg-sidebar" data-sidebar>
+        <a class="eg-sidebar-brand text-decoration-none text-reset" href="index.html">
+            <span class="eg-brand-mark">EG</span>
+            <span>EduGame&nbsp;Track</span>
+        </a>
+
+        <div class="eg-nav-group-title">Monitoring</div>
+        <nav class="d-flex flex-column gap-1">
+            <a class="eg-side-link active" href="#">
+                <span class="eg-side-icon">📊</span> Ringkasan
+            </a>
+            <a class="eg-side-link" href="#grafik">
+                <span class="eg-side-icon">📈</span> Grafik Progres
+            </a>
+            <a class="eg-side-link" href="#rekap">
+                <span class="eg-side-icon">📋</span> Rekap Nilai
+            </a>
+            <a class="eg-side-link" href="#rekap">
+                <span class="eg-side-icon">👥</span> Data Siswa
+            </a>
+        </nav>
+
+        <div class="eg-nav-group-title">Manajemen</div>
+        <nav class="d-flex flex-column gap-1">
+            <a class="eg-side-link" href="#">
+                <span class="eg-side-icon">📝</span> Buat Tugas
+            </a>
+            <a class="eg-side-link" href="#">
+                <span class="eg-side-icon">🏅</span> Kelola Lencana
+            </a>
+            <a class="eg-side-link" href="#peringatan">
+                <span class="eg-side-icon">🔔</span> Peringatan
+                <span class="eg-badge-chip eg-chip-danger ms-auto">3</span>
+            </a>
+        </nav>
+
+        <div class="eg-side-foot">
+            <button class="eg-quick-action w-100 border-0 mb-2" type="button" data-theme-toggle>
+                <span class="qa-icon" data-theme-icon>🌙</span>
+                <span class="flex-grow-1 text-start">Ganti Tema</span>
+            </button>
+            <a class="eg-quick-action" href="login.html">
+                <span class="qa-icon" style="background:rgba(var(--eg-danger-rgb),.14)">🚪</span>
+                <span class="flex-grow-1">Keluar</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- ============ KONTEN ============ -->
+    <div class="eg-main">
+
+        <!-- Topbar -->
+        <header class="eg-topbar">
             <div class="d-flex align-items-center gap-3">
-                <span class="text-light small">Administrator Kelas</span>
-                <a href="index.html" class="btn btn-outline-light btn-sm">Keluar</a>
+                <button class="btn btn-ghost btn-icon eg-sidebar-toggle" type="button" data-sidebar-toggle aria-label="Buka menu">☰</button>
+                <div>
+                    <h1 class="fw-bold mb-0 fs-5">Panel Guru &amp; Admin 👩‍🏫</h1>
+                    <small class="text-secondary">Kelas 11-A · Rombel IPA 2 · Semester 1</small>
+                </div>
             </div>
-        </div>
-    </nav>
 
-    <!-- Konten Utama Guru -->
-    <div class="container py-5">
-        <div class="row g-4 mb-4">
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
-                    <h6 class="text-muted small fw-bold">Total Siswa Aktif</h6>
-                    <h3 class="fw-bold text-primary mb-0">32 Siswa</h3>
+            <div class="d-flex align-items-center gap-2">
+                <div class="position-relative d-none d-md-block">
+                    <input type="search" class="form-control form-control-sm" id="topSearch"
+                           placeholder="Cari siswa…" style="padding-left:2rem" aria-label="Cari siswa">
+                    <span class="position-absolute top-50 translate-middle-y ms-2 text-secondary">🔍</span>
                 </div>
+                <button class="btn btn-ghost btn-icon" type="button" data-theme-toggle aria-label="Ganti tema">
+                    <span data-theme-icon>🌙</span>
+                </button>
+                <span class="eg-avatar eg-avatar-2" title="Bu Rina">BR</span>
             </div>
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
-                    <h6 class="text-muted small fw-bold">Tugas & Kuis Aktif</h6>
-                    <h3 class="fw-bold text-success mb-0">5 Tugas</h3>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
-                    <h6 class="text-muted small fw-bold">Rata-Rata Kelas</h6>
-                    <h3 class="fw-bold text-warning mb-0">88.5 / 100</h3>
-                </div>
-            </div>
-        </div>
+        </header>
 
-        <div class="card border-0 shadow-sm rounded-4 p-4">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="fw-bold mb-0">📊 Monitoring & Rekap Nilai Siswa</h4>
-                <button onclick="alert('Membuka form pembuatan tugas baru...')" class="btn btn-primary btn-sm fw-bold">+ Buat Tugas Baru</button>
+        <div class="eg-content">
+
+            <!-- Statistik -->
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-xl-3">
+                    <div class="eg-stat h-100" data-reveal>
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="eg-stat-label mb-1">Total Siswa Aktif</div>
+                                <div class="eg-stat-value text-primary"><span data-count="32">0</span></div>
+                            </div>
+                            <span class="eg-icon-bubble" style="width:38px;height:38px;font-size:1.05rem">👥</span>
+                        </div>
+                        <span class="eg-stat-trend eg-trend-up mt-2">↑ 2 siswa baru</span>
+                    </div>
+                </div>
+                <div class="col-6 col-xl-3">
+                    <div class="eg-stat h-100" data-reveal style="--reveal-delay:80ms">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="eg-stat-label mb-1">Tugas &amp; Kuis Aktif</div>
+                                <div class="eg-stat-value text-success"><span data-count="5">0</span></div>
+                            </div>
+                            <span class="eg-icon-bubble eg-icon-bubble-2" style="width:38px;height:38px;font-size:1.05rem">📝</span>
+                        </div>
+                        <span class="eg-stat-trend eg-trend-up mt-2">↑ 1 minggu ini</span>
+                    </div>
+                </div>
+                <div class="col-6 col-xl-3">
+                    <div class="eg-stat h-100" data-reveal style="--reveal-delay:160ms">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="eg-stat-label mb-1">Rata-rata Kelas</div>
+                                <div class="eg-stat-value text-warning"><span data-count="88.5" data-decimals="1">0</span></div>
+                            </div>
+                            <span class="eg-icon-bubble eg-icon-bubble-3" style="width:38px;height:38px;font-size:1.05rem">🎯</span>
+                        </div>
+                        <span class="eg-stat-trend eg-trend-up mt-2">↑ 4,2 poin</span>
+                    </div>
+                </div>
+                <div class="col-6 col-xl-3">
+                    <div class="eg-stat h-100" data-reveal style="--reveal-delay:240ms">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <div class="eg-stat-label mb-1">Tugas Terlambat</div>
+                                <div class="eg-stat-value text-danger"><span data-count="3">0</span></div>
+                            </div>
+                            <span class="eg-icon-bubble eg-icon-bubble-6" style="width:38px;height:38px;font-size:1.05rem">⏰</span>
+                        </div>
+                        <span class="eg-stat-trend eg-trend-down mt-2">↓ 2 dari minggu lalu</span>
+                    </div>
+                </div>
             </div>
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Nama Siswa</th>
-                            <th>Kuis Algoritma</th>
-                            <th>Tugas HTML/CSS</th>
-                            <th>Total XP</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="fw-semibold">Ahmad Fauzan</td>
-                            <td><span class="badge bg-success">95 (Selesai)</span></td>
-                            <td><span class="badge bg-success">90 (Selesai)</span></td>
-                            <td class="fw-bold text-warning">2,450 XP</td>
-                            <td><button class="btn btn-sm btn-outline-primary">Detail</button></td>
-                        </tr>
-                        <tr>
-                            <td class="fw-semibold">Siti Rahma</td>
-                            <td><span class="badge bg-success">88 (Selesai)</span></td>
-                            <td><span class="badge bg-success">92 (Selesai)</span></td>
-                            <td class="fw-bold text-secondary">2,100 XP</td>
-                            <td><button class="btn btn-sm btn-outline-primary">Detail</button></td>
-                        </tr>
-                    </tbody>
-                </table>
+
+            <!-- Grafik -->
+            <div class="row g-4 mb-4" id="grafik">
+                <div class="col-lg-8">
+                    <div class="eg-panel h-100" data-reveal>
+                        <div class="eg-panel-head">
+                            <div>
+                                <h3 class="eg-panel-title">📈 Perkembangan Nilai Kelas</h3>
+                                <small class="text-secondary">Rata-rata nilai mingguan · 6 minggu terakhir</small>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <span class="eg-badge-chip eg-chip-primary">Mingguan</span>
+                                <span class="eg-badge-chip eg-chip-muted">Bulanan</span>
+                            </div>
+                        </div>
+                        <div class="eg-panel-body">
+                            <div id="chartNilai"></div>
+                            <div class="d-flex flex-wrap gap-3 mt-3">
+                                <span class="eg-legend"><i style="background:var(--eg-primary)"></i> Rata-rata kelas</span>
+                                <span class="eg-legend"><i style="background:var(--eg-success)"></i> Target semester (85)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="eg-panel h-100" data-reveal="right">
+                        <div class="eg-panel-head">
+                            <h3 class="eg-panel-title">📦 Penyelesaian Tugas</h3>
+                        </div>
+                        <div class="eg-panel-body">
+                            <div class="eg-bar-row">
+                                <div class="d-flex justify-content-between small fw-semibold mb-1">
+                                    <span>Kuis Algoritma</span><span class="text-secondary">96%</span>
+                                </div>
+                                <div class="eg-bar-track">
+                                    <div class="eg-bar-fill" data-progress="96" style="background:linear-gradient(90deg,var(--eg-primary),var(--eg-violet))"></div>
+                                </div>
+                            </div>
+                            <div class="eg-bar-row">
+                                <div class="d-flex justify-content-between small fw-semibold mb-1">
+                                    <span>Tugas HTML/CSS</span><span class="text-secondary">88%</span>
+                                </div>
+                                <div class="eg-bar-track">
+                                    <div class="eg-bar-fill" data-progress="88" style="background:linear-gradient(90deg,var(--eg-success),#34d399)"></div>
+                                </div>
+                            </div>
+                            <div class="eg-bar-row">
+                                <div class="d-flex justify-content-between small fw-semibold mb-1">
+                                    <span>Praktikum Jaringan</span><span class="text-secondary">72%</span>
+                                </div>
+                                <div class="eg-bar-track">
+                                    <div class="eg-bar-fill" data-progress="72" style="background:linear-gradient(90deg,var(--eg-xp),#fbbf24)"></div>
+                                </div>
+                            </div>
+                            <div class="eg-bar-row">
+                                <div class="d-flex justify-content-between small fw-semibold mb-1">
+                                    <span>Refleksi Bab 3</span><span class="text-secondary">54%</span>
+                                </div>
+                                <div class="eg-bar-track">
+                                    <div class="eg-bar-fill" data-progress="54" style="background:linear-gradient(90deg,var(--eg-danger),#fb7185)"></div>
+                                </div>
+                            </div>
+                            <div class="eg-bar-row">
+                                <div class="d-flex justify-content-between small fw-semibold mb-1">
+                                    <span>Proyek Kelompok</span><span class="text-secondary">41%</span>
+                                </div>
+                                <div class="eg-bar-track">
+                                    <div class="eg-bar-fill" data-progress="41" style="background:linear-gradient(90deg,var(--eg-info),#38bdf8)"></div>
+                                </div>
+                            </div>
+
+                            <hr style="border-color:var(--eg-border)">
+
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="eg-stat-label">Tingkat Penyelesaian</div>
+                                    <div class="fs-4 fw-bold text-primary">78%</div>
+                                </div>
+                                <span class="eg-badge-chip eg-chip-warning">⚠️ 3 terlambat</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
+
+            <!-- Rekap + Peringatan -->
+            <div class="row g-4 mb-4">
+                <div class="col-lg-7" id="rekap">
+                    <div class="eg-panel h-100" data-reveal>
+                        <div class="eg-panel-head">
+                            <div>
+                                <h3 class="eg-panel-title">📋 Rekap Nilai Siswa</h3>
+                                <small class="text-secondary" id="tableInfo">Menampilkan 5 dari 5 siswa</small>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <input type="search" class="form-control form-control-sm" id="tableSearch"
+                                       placeholder="Cari nama…" style="width:170px" aria-label="Cari nama siswa">
+                                <button class="btn btn-primary btn-sm fw-bold" type="button" id="btnNewTask">+ Tugas Baru</button>
+                            </div>
+                        </div>
+                        <div class="eg-panel-body p-0">
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle eg-table-mini mb-0" id="studentTable">
+                                    <thead>
+                                        <tr>
+                                            <th class="ps-4">Nama Siswa</th>
+                                            <th>Kuis Algoritma</th>
+                                            <th>Tugas HTML/CSS</th>
+                                            <th>Total XP</th>
+                                            <th>Progres</th>
+                                            <th class="text-end pe-4">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="ps-4">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="eg-avatar" style="width:30px;height:30px;font-size:.68rem">AF</span>
+                                                    <span class="fw-semibold">Ahmad Fauzan</span>
+                                                </div>
+                                            </td>
+                                            <td><span class="eg-badge-chip eg-chip-success">95 · Selesai</span></td>
+                                            <td><span class="eg-badge-chip eg-chip-success">90 · Selesai</span></td>
+                                            <td class="fw-bold text-warning">2.450</td>
+                                            <td style="min-width:110px">
+                                                <div class="eg-progress eg-progress-success"><span data-progress="100"></span></div>
+                                            </td>
+                                            <td class="text-end pe-4">
+                                                <button class="btn btn-ghost btn-sm" data-detail="Ahmad Fauzan">Detail</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="ps-4">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="eg-avatar eg-avatar-2" style="width:30px;height:30px;font-size:.68rem">SR</span>
+                                                    <span class="fw-semibold">Siti Rahma</span>
+                                                </div>
+                                            </td>
+                                            <td><span class="eg-badge-chip eg-chip-success">88 · Selesai</span></td>
+                                            <td><span class="eg-badge-chip eg-chip-success">92 · Selesai</span></td>
+                                            <td class="fw-bold text-secondary">2.100</td>
+                                            <td style="min-width:110px">
+                                                <div class="eg-progress eg-progress-success"><span data-progress="100"></span></div>
+                                            </td>
+                                            <td class="text-end pe-4">
+                                                <button class="btn btn-ghost btn-sm" data-detail="Siti Rahma">Detail</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="ps-4">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="eg-avatar eg-avatar-3" style="width:30px;height:30px;font-size:.68rem">BS</span>
+                                                    <span class="fw-semibold">Budi Santoso</span>
+                                                </div>
+                                            </td>
+                                            <td><span class="eg-badge-chip eg-chip-success">85 · Selesai</span></td>
+                                            <td><span class="eg-badge-chip eg-chip-warning">78 · Dikoreksi</span></td>
+                                            <td class="fw-bold text-secondary">1.850</td>
+                                            <td style="min-width:110px">
+                                                <div class="eg-progress"><span data-progress="80"></span></div>
+                                            </td>
+                                            <td class="text-end pe-4">
+                                                <button class="btn btn-ghost btn-sm" data-detail="Budi Santoso">Detail</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="ps-4">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="eg-avatar eg-avatar-4" style="width:30px;height:30px;font-size:.68rem">AN</span>
+                                                    <span class="fw-semibold">Andi Nugroho</span>
+                                                </div>
+                                            </td>
+                                            <td><span class="eg-badge-chip eg-chip-warning">78 · Dikoreksi</span></td>
+                                            <td><span class="eg-badge-chip eg-chip-success">88 · Selesai</span></td>
+                                            <td class="fw-bold text-secondary">1.640</td>
+                                            <td style="min-width:110px">
+                                                <div class="eg-progress"><span data-progress="70"></span></div>
+                                            </td>
+                                            <td class="text-end pe-4">
+                                                <button class="btn btn-ghost btn-sm" data-detail="Andi Nugroho">Detail</button>
+                                            </td>
+                                        </tr>
+                                        <tr>
+                                            <td class="ps-4">
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="eg-avatar eg-avatar-2" style="width:30px;height:30px;font-size:.68rem">DN</span>
+                                                    <span class="fw-semibold">Dewi Nur Aini</span>
+                                                </div>
+                                            </td>
+                                            <td><span class="eg-badge-chip eg-chip-danger">62 · Belum</span></td>
+                                            <td><span class="eg-badge-chip eg-chip-warning">70 · Dikoreksi</span></td>
+                                            <td class="fw-bold text-danger">1.320</td>
+                                            <td style="min-width:110px">
+                                                <div class="eg-progress eg-progress-xp"><span data-progress="45"></span></div>
+                                            </td>
+                                            <td class="text-end pe-4">
+                                                <button class="btn btn-ghost btn-sm" data-detail="Dewi Nur Aini">Detail</button>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                <p class="text-center text-secondary small py-4 mb-0 d-none" id="emptyState">
+                                    Tidak ada siswa yang cocok dengan pencarianmu.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-lg-5" id="peringatan">
+                    <div class="eg-panel h-100" data-reveal="right">
+                        <div class="eg-panel-head">
+                            <h3 class="eg-panel-title">🔔 Peringatan Kelas</h3>
+                            <span class="eg-badge-chip eg-chip-danger">3 aktif</span>
+                        </div>
+                        <div class="eg-panel-body d-flex flex-column gap-2">
+                            <div class="eg-alert-row">
+                                <div class="eg-alert-icon" style="background:rgba(var(--eg-danger-rgb),.14)">⏰</div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-bold small">Praktikum Instalasi Jaringan</div>
+                                    <small class="text-secondary">3 siswa belum mengumpulkan · lewat 1 hari</small>
+                                </div>
+                                <button class="btn btn-ghost btn-sm" data-notify="Pengingat dikirim ke 3 siswa.">Ingatkan</button>
+                            </div>
+                            <div class="eg-alert-row">
+                                <div class="eg-alert-icon" style="background:rgba(var(--eg-xp-rgb),.16)">📉</div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-bold small">Nilai di bawah KKM (75)</div>
+                                    <small class="text-secondary">Dewi Nur Aini · 2 mata pelajaran</small>
+                                </div>
+                                <button class="btn btn-ghost btn-sm" data-notify="Catatan coaching akan dikirim ke wali kelas.">Tindak lanjut</button>
+                            </div>
+                            <div class="eg-alert-row">
+                                <div class="eg-alert-icon" style="background:rgba(var(--eg-info-rgb),.14)">📊</div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-bold small">Refleksi Bab 3 belumifted</div>
+                                    <small class="text-secondary">14 dari 32 siswa belum mengerjakan</small>
+                                </div>
+                                <button class="btn btn-ghost btn-sm" data-notify="Pengingat dikirim ke 14 siswa.">Ingatkan</button>
+                            </div>
+                            <div class="eg-alert-row">
+                                <div class="eg-alert-icon" style="background:rgba(var(--eg-success-rgb),.14)">🎉</div>
+                                <div class="flex-grow-1">
+                                    <div class="fw-bold small">Target mingguan tercapai</div>
+                                    <small class="text-secondary">Rata-rata kelas naik ke 88,5 — di atas target 85</small>
+                                </div>
+                                <span class="eg-badge-chip eg-chip-success">Selamat</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ringkasan kelas -->
+            <div class="eg-panel" data-reveal>
+                <div class="eg-panel-head">
+                    <div>
+                        <h3 class="eg-panel-title">🧭 Sebaran Prestasi Kelas</h3>
+                        <small class="text-secondary">Jumlah siswa per lencana achievement</small>
+                    </div>
+                </div>
+                <div class="eg-panel-body">
+                    <div class="row g-4 align-items-center">
+                        <div class="col-lg-5 text-center">
+                            <div class="eg-ring-wrap mx-auto" style="width:160px;height:160px">
+                                <svg id="donutLencana" width="160" height="160" role="img" aria-label="Sebaran lencana kelas"></svg>
+                            </div>
+                            <small class="text-secondary d-block mt-2">32 siswa aktif · 8 jenis lencana</small>
+                        </div>
+                        <div class="col-lg-7">
+                            <div class="row g-3">
+                                <div class="col-6 col-md-4">
+                                    <div class="eg-stat h-100 text-center">
+                                        <div class="eg-stat-label mb-1">🌟 Pemula</div>
+                                        <div class="eg-stat-value text-primary"><span data-count="32">0</span></div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <div class="eg-stat h-100 text-center">
+                                        <div class="eg-stat-label mb-1">🔥 Rajin</div>
+                                        <div class="eg-stat-value text-success"><span data-count="24">0</span></div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <div class="eg-stat h-100 text-center">
+                                        <div class="eg-stat-label mb-1">⚡ Quick Thinker</div>
+                                        <div class="eg-stat-value text-info"><span data-count="18">0</span></div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <div class="eg-stat h-100 text-center">
+                                        <div class="eg-stat-label mb-1">🎯 Akurasi 90%</div>
+                                        <div class="eg-stat-value text-warning"><span data-count="11">0</span></div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <div class="eg-stat h-100 text-center">
+                                        <div class="eg-stat-label mb-1">🧭 Explorer</div>
+                                        <div class="eg-stat-value text-primary"><span data-count="7">0</span></div>
+                                    </div>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <div class="eg-stat h-100 text-center">
+                                        <div class="eg-stat-label mb-1">👑 Juara</div>
+                                        <div class="eg-stat-value text-danger"><span data-count="2">0</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </div>
     </div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/js/app.js"></script>
+<script>
+    (function () {
+        'use strict';
+
+        /* Grafik perkembangan nilai (SVG buatan sendiri) */
+        EG.chart.line(document.getElementById('chartNilai'), {
+            labels: ['Minggu 1', 'Minggu 2', 'Minggu 3', 'Minggu 4', 'Minggu 5', 'Minggu 6'],
+            values: [72, 78, 75, 84, 86, 88.5],
+            min: 60, max: 100, unit: '',
+            label: 'Grafik perkembangan rata-rata nilai kelas 11-A'
+        });
+
+        /* Donat sebaran lencana */
+        EG.chart.ring(document.getElementById('donutLencana'), 75, 100, {
+            size: 160, stroke: 16, color: 'var(--eg-violet)'
+        });
+
+        /* Pencarian tabel */
+        const table = document.getElementById('studentTable');
+        const searchInput = document.getElementById('tableSearch');
+        const topSearch = document.getElementById('topSearch');
+        const info = document.getElementById('tableInfo');
+        const emptyState = document.getElementById('emptyState');
+
+        function filterRows(keyword) {
+            const key = keyword.trim().toLowerCase();
+            const rows = Array.from(table.tBodies[0].rows);
+            let visible = 0;
+
+            rows.forEach((row) => {
+                const match = row.textContent.toLowerCase().includes(key);
+                row.style.display = match ? '' : 'none';
+                if (match) visible++;
+            });
+
+            info.textContent = 'Menampilkan ' + visible + ' dari ' + rows.length + ' siswa';
+            emptyState.classList.toggle('d-none', visible !== 0);
+        }
+
+        searchInput.addEventListener('input', (e) => filterRows(e.target.value));
+        topSearch.addEventListener('input', (e) => {
+            searchInput.value = e.target.value;
+            filterRows(e.target.value);
+        });
+
+        /* Aksi baris tabel */
+        document.querySelectorAll('[data-detail]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                EG.toast('Menampilkan profil lengkap ' + btn.dataset.detail + '.', {
+                    type: 'info', title: 'Detail Siswa', icon: '👤'
+                });
+            });
+        });
+
+        document.querySelectorAll('[data-notify]').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                EG.toast(btn.dataset.notify, { type: 'success', title: 'Tindakan diproses', icon: '📨' });
+            });
+        });
+
+        document.getElementById('btnNewTask').addEventListener('click', () => {
+            EG.toast('Formulir pembuatan tugas akan segera tersedia di versi berikutnya.', {
+                type: 'info', title: 'Buat Tugas Baru', icon: '📝'
+            });
+        });
+    })();
+</script>
 </body>
 </html>
